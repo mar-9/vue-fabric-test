@@ -4,6 +4,7 @@
 <template>
   <div>
     <canvas id="base-canvas">
+      <FabricRect :coord="[100, 100, 200, 200]" :canvas="canvas" fillColor="red"/>
     </canvas>
   </div>
 </template>
@@ -11,6 +12,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { fabric } from "fabric";
+import FabricRect from '@/components/FabricRect.vue';
 
 interface DataType {
   canvas: fabric.Canvas | undefined;
@@ -19,6 +21,9 @@ interface DataType {
 
 export default Vue.extend({
   name: "FabricCanvas",
+  components: {
+    FabricRect
+  },
   props: {
     width: Number,
     height: Number,
@@ -38,6 +43,7 @@ export default Vue.extend({
       });
       canvas.preserveObjectStacking = true;
       canvas.stateful = true;
+      fabric.Object.prototype.transparentCorners = false;
 
       this.canvas = canvas;
     });

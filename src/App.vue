@@ -6,7 +6,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import FabricCanvas from './components/FabricCanvas.vue';
+import FabricCanvas from '@/components/FabricCanvas.vue';
 
 export default Vue.extend({
   name: 'App',
