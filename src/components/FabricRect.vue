@@ -8,6 +8,7 @@
 <script lang="ts">
 import Vue, { PropType } from 'vue';
 import { fabric } from "fabric";
+import { rectRecord } from '@/App.vue';
 
 interface DataType {
   rect: fabric.Rect | null;
@@ -16,10 +17,9 @@ interface DataType {
 export default Vue.extend({
   name: "FabricRect",
   props: {
-    coord: Array as PropType<number[]>,
+    rectRec: Object as PropType<rectRecord>,
     fillColor: String, 
     canvas: Object as PropType<fabric.Canvas>,
-    handleCoordChange: Function as PropType<(coord:number[]) => void>,
   },
   data(): DataType {
     return {
@@ -27,18 +27,45 @@ export default Vue.extend({
     };
   },
   watch: {
-    // eslint-disable-next-line no-unused-vars
+    /* eslint-disable @typescript-eslint/no-unused-vars */
     canvas: function (_val, _oldVal) {
+      this.setupRect();
+    },
+  },
+  methods: {
+    /* eslint-disable @typescript-eslint/no-non-null-assertion */
+    setupRect: function() {
       const rect = new fabric.Rect({
-        left: this.coord[0],
-        top: this.coord[1],
-        width: this.coord[2],
-        height: this.coord[3],
-        fill: this.fillColor,
+        left: this.rectRec.x,
+        top: this.rectRec.y,
+        width: this.rectRec.w,
+        height: this.rectRec.h,
+        originX: 'left',
+        originY: 'top',
+        fill: this.rectRec.fill,
+      });
+      rect.on('moved', () => {
+        const coord = [
+          Math.round(rect.left!),
+          Math.round(rect.top!),
+          Math.round(rect.width! * rect.scaleX!),
+          Math.round(rect.height! * rect.scaleY!),
+        ];
+        this.$emit('coord-change', coord, 'moved');
+      });
+      rect.on('scaled', () => {
+        const coord = [
+          Math.round(rect.left!),
+          Math.round(rect.top!),
+          Math.round(rect.width! * rect.scaleX!),
+          Math.round(rect.height! * rect.scaleY!),
+        ];
+        this.$emit('coord-change', coord, 'scaled');
       });
       this.canvas.add(rect);
       this.rect = rect;
-    },
+
+    }
   },
 });
 </script>

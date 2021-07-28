@@ -1,5 +1,9 @@
 # vue-fabric-test
 
+Vue.js で Fabric.js を使って 2D 描画をしてみるテストです。
+
+詳しくは、[TECHaas - Vue で Fabric.js](https://www.techaas.net/post/vue-fabric/) をどうそ。
+
 ## Project setup
 ```
 npm install

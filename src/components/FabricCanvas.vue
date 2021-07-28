@@ -4,15 +4,22 @@
 <template>
   <div>
     <canvas id="base-canvas">
-      <FabricRect :coord="[100, 100, 200, 200]" :canvas="canvas" fillColor="red"/>
+      <FabricRect 
+        v-for="(rect, index) in rects"
+        :key="index"
+        :rect-rec="rect" 
+        :canvas="canvas" 
+        fillColor="red" 
+        @coord-change="(coord, event) => $emit('coord-change', index, coord, event)" />
     </canvas>
   </div>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { PropType } from 'vue';
 import { fabric } from "fabric";
 import FabricRect from '@/components/FabricRect.vue';
+import { rectRecord } from '@/App.vue';
 
 interface DataType {
   canvas: fabric.Canvas | undefined;
@@ -27,6 +34,7 @@ export default Vue.extend({
   props: {
     width: Number,
     height: Number,
+    rects: Array as PropType<rectRecord[]>,
   },
   data() : DataType {
     return {
