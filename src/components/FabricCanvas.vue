@@ -157,8 +157,7 @@ export default Vue.extend({
       this.canvas?.remove(this.canvas?.getActiveObject());
     },
     startSelect(e: fabric.IEvent) {
-      if (this.status == 1) {
-        this.selectionMode = true;
+      if (this.status == 1 || this.status == 2) {
         if (this.canvas !== undefined) {
           this.canvas.isDrawingMode = true;
         }
@@ -167,36 +166,52 @@ export default Vue.extend({
       }
     },
     drag(e: fabric.IEvent) {
-      if (this.status == 1) {
-        if (this.selectionMode) {
-          this.selectionMode = true;
-          const line = new fabric.Line(
+      if (this.canvas?.isDrawingMode) {
+        let shape = this.createShape(this.status, e);
+        if (shape !== undefined) {
+          this.canvas?.remove(this.last);
+          this.last = shape;
+          this.canvas?.add(shape);
+        }
+      }
+    },
+    endSelect(e: fabric.IEvent) {
+      let shape = this.createShape(this.status, e);
+      if (shape !== undefined) {
+        this.canvas?.remove(this.last);
+        this.canvas?.add(shape);
+        if (this.canvas !== undefined) {
+          this.canvas.isDrawingMode = false;
+        }
+      }
+    },
+    createShape: function (type: number, e: fabric.IEvent) {
+      let shape: fabric.Object | undefined = undefined;
+      const w = (e.pointer?.x ?? 0) - this.startX;
+      const h = (e.pointer?.y ?? 0) - this.startY;
+      switch (this.status) {
+        case 1:
+          shape = new fabric.Line(
             [this.startX, this.startY, e.pointer?.x ?? 0, e.pointer?.y ?? 0],
             {
               stroke: 'blue'
             }
           );
-          this.canvas?.remove(this.last);
-          this.last = line;
-          this.canvas?.add(line);
-        }
+          break;
+        case 2:
+          shape = new fabric.Rect(
+            {
+              left: this.startX,
+              top: this.startY,
+              width: w,
+              height: h,
+              stroke: 'blue',
+              fill: 'gray'
+            }
+          );
+          break;
       }
-    },
-    endSelect(e: fabric.IEvent) {
-      if (this.status == 1) {
-        this.canvas?.remove(this.last);
-        const line = new fabric.Line(
-          [this.startX, this.startY, e.pointer?.x ?? 0, e.pointer?.y ?? 0],
-          {
-            stroke: 'blue'
-          }
-        );
-        this.canvas?.add(line);
-        this.selectionMode = false;
-        if (this.canvas !== undefined) {
-          this.canvas.isDrawingMode = false;
-        }
-      }
+      return shape;
     },
   }
 });
