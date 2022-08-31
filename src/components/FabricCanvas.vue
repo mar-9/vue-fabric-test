@@ -3,29 +3,61 @@
 -->
 <template>
   <div>
-    <canvas id="base-canvas">
-      <FabricRect v-for="(rect, index) in rects" :key="index" :rect-rec="rect" :canvas="canvas" fillColor="red"
-        @coord-change="(coord, event) => $emit('coord-change', index, coord, event)" />
-    </canvas>
-    <button v-on:click="addText">テキスト</button>
-    <button v-on:click="addLine">線</button>
-    <button v-on:click="addRect">四角</button>
-    <button v-on:click="addCircle">丸</button>
-    <button v-on:click="removeObj">削除</button>
-    <v-btn :class="[status == 0 ? 'primary' : 'normal']" v-on:click="changeState(0)">
-      選択
-    </v-btn>
-    <v-btn :class="[status == 1 ? 'primary' : 'normal']" v-on:click="changeState(1)">
-      線
-    </v-btn>
-    <v-btn :class="[status == 2 ? 'primary' : 'normal']" v-on:click="changeState(2)">
-      四角
-    </v-btn>
+    <v-row>
+      <canvas id="base-canvas">
+        <FabricRect v-for="(rect, index) in rects" :key="index" :rect-rec="rect" :canvas="canvas" fillColor="red"
+          @coord-change="(coord, event) => $emit('coord-change', index, coord, event)" />
+      </canvas>
+    </v-row>
+    <v-row>
+      <v-col>
+        <button v-on:click="addText">テキスト</button>
+        <button v-on:click="addLine">線</button>
+        <button v-on:click="addRect">四角</button>
+        <button v-on:click="addCircle">丸</button>
+        <button v-on:click="removeObj">削除</button>
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col>
+        図形の選択
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col>
+        <v-btn :class="[status == 0 ? 'primary' : 'normal']" v-on:click="changeState(0)">
+          選択
+        </v-btn>
+        <v-btn :class="[status == 1 ? 'primary' : 'normal']" v-on:click="changeState(1)">
+          線
+        </v-btn>
+        <v-btn :class="[status == 2 ? 'primary' : 'normal']" v-on:click="changeState(2)">
+          四角
+        </v-btn>
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col>
+        色の選択
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col>
+        <v-btn :class="[colorStatus == 0 ? 'primary' : 'normal']" v-on:click="changeColor(0)">
+          赤
+        </v-btn>
+        <v-btn :class="[colorStatus == 1 ? 'primary' : 'normal']" v-on:click="changeColor(1)">
+          青
+        </v-btn>
+      </v-col>
+    </v-row>
 
-    <v-btn-toggle v-model="toggle_exclusive">
-      <v-btn active-class="aa" @click="changeState(1)">線</v-btn>
-      <v-btn active-class="aa" @click="changeState(2)">四角</v-btn>
-    </v-btn-toggle>
+    <v-row>
+      <v-btn-toggle v-model="toggle_exclusive">
+        <v-btn active-class="aa" @click="changeState(1)">線</v-btn>
+        <v-btn active-class="aa" @click="changeState(2)">四角</v-btn>
+      </v-btn-toggle>
+    </v-row>
   </div>
 </template>
 
@@ -43,6 +75,7 @@ interface DataType {
   startX: number;
   startY: number;
   status: number;
+  colorStatus: number;
   last: any;
 }
 
@@ -65,6 +98,7 @@ export default Vue.extend({
       startX: 0.0,
       startY: 0.0,
       status: 0,
+      colorStatus: 0,
       last: undefined,
     };
   },
@@ -106,6 +140,12 @@ export default Vue.extend({
     });
   },
   methods: {
+    changeColor: function (colorStatus: number) {
+      this.colorStatus = colorStatus;
+      let color = colorStatus == 0 ? 'red' : 'blue';
+      this.canvas?.getActiveObject().set("fill", color);
+      this.canvas?.renderAll();
+    },
     changeState: function (status: number) {
       this.status = status;
       console.log(this.status);
