@@ -4,14 +4,28 @@
 <template>
   <div>
     <canvas id="base-canvas">
-      <FabricRect 
-        v-for="(rect, index) in rects"
-        :key="index"
-        :rect-rec="rect" 
-        :canvas="canvas" 
-        fillColor="red" 
+      <FabricRect v-for="(rect, index) in rects" :key="index" :rect-rec="rect" :canvas="canvas" fillColor="red"
         @coord-change="(coord, event) => $emit('coord-change', index, coord, event)" />
     </canvas>
+    <button v-on:click="addText">テキスト</button>
+    <button v-on:click="addLine">線</button>
+    <button v-on:click="addRect">四角</button>
+    <button v-on:click="addCircle">丸</button>
+    <button v-on:click="removeObj">削除</button>
+    <v-btn :class="[status == 0 ? 'primary' : 'normal']" v-on:click="changeState(0)">
+      選択
+    </v-btn>
+    <v-btn :class="[status == 1 ? 'primary' : 'normal']" v-on:click="changeState(1)">
+      線
+    </v-btn>
+    <v-btn :class="[status == 2 ? 'primary' : 'normal']" v-on:click="changeState(2)">
+      四角
+    </v-btn>
+
+    <v-btn-toggle v-model="toggle_exclusive">
+      <v-btn active-class="aa" @click="changeState(1)">線</v-btn>
+      <v-btn active-class="aa" @click="changeState(2)">四角</v-btn>
+    </v-btn-toggle>
   </div>
 </template>
 
@@ -22,8 +36,14 @@ import FabricRect from '@/components/FabricRect.vue';
 import { rectRecord } from '@/App.vue';
 
 interface DataType {
+  toggle_exclusive: any;
   canvas: fabric.Canvas | undefined;
   background: string;
+  selectionMode: boolean;
+  startX: number;
+  startY: number;
+  status: number;
+  last: any;
 }
 
 export default Vue.extend({
@@ -36,13 +56,20 @@ export default Vue.extend({
     height: Number,
     rects: Array as PropType<rectRecord[]>,
   },
-  data() : DataType {
+  data(): DataType {
     return {
+      toggle_exclusive: [],
       canvas: undefined,
       background: 'lightgray',
+      selectionMode: false,
+      startX: 0.0,
+      startY: 0.0,
+      status: 0,
+      last: undefined,
     };
   },
   mounted: function () {
+    let self = this;
     this.$nextTick(function () {
       const canvas = new fabric.Canvas("base-canvas", {
         width: this.width,
@@ -51,10 +78,143 @@ export default Vue.extend({
       });
       canvas.preserveObjectStacking = true;
       canvas.stateful = true;
+      var imgUrl = require('@/assets/img/bg_image.png');
+      fabric.Image.fromURL(imgUrl, function (img) {
+        canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
+          // scaleX: canvas.width / img.width,
+          // scaleY: canvas.height / img.height
+        });
+      });
+
       fabric.Object.prototype.transparentCorners = false;
+
+      canvas.on("text:changed", adjustTextWidth);
+      canvas.on("mouse:down", function (options) {
+        console.log(options);
+        self.startSelect(options);
+      });
+      canvas.on("mouse:up", function (options) {
+        console.log(options);
+        self.endSelect(options);
+      });
+      canvas.on("mouse:move", function (options) {
+        console.log(options);
+        self.drag(options);
+      });
 
       this.canvas = canvas;
     });
   },
+  methods: {
+    changeState: function (status: number) {
+      this.status = status;
+      console.log(this.status);
+    },
+    addText: function () {
+      const text = new fabric.Textbox('注釈を記述',
+        {
+          width: 450
+        });
+      this.canvas?.add(text);
+    },
+    addLine: function () {
+      const line = new fabric.Line(
+        [50, 100, 200, 200],
+        {
+          left: 170,
+          top: 150,
+          stroke: 'red'
+        });
+      this.canvas?.add(line);
+    },
+    addRect: function () {
+      const rect = new fabric.Rect(
+        {
+          left: 200,
+          top: 100,
+          fill: 'red',
+          width: 31,
+          height: 31,
+        });
+      this.canvas?.add(rect);
+    },
+    addCircle: function () {
+      const circle = new fabric.Circle(
+        {
+          radius: 20,
+          left: 100,
+          top: 100,
+          angle: 45,
+          startAngle: 0,
+          endAngle: Math.PI,
+          stroke: '#000',
+          strokeWidth: 3,
+          fill: '',
+        });
+      this.canvas?.add(circle);
+    },
+    removeObj: function () {
+      this.canvas?.remove(this.canvas?.getActiveObject());
+    },
+    startSelect(e: fabric.IEvent) {
+      if (this.status == 1) {
+        this.selectionMode = true;
+        if (this.canvas !== undefined) {
+          this.canvas.isDrawingMode = true;
+        }
+        this.startX = e.pointer?.x ?? 0;
+        this.startY = e.pointer?.y ?? 0;
+      }
+    },
+    drag(e: fabric.IEvent) {
+      if (this.status == 1) {
+        if (this.selectionMode) {
+          this.selectionMode = true;
+          const line = new fabric.Line(
+            [this.startX, this.startY, e.pointer?.x ?? 0, e.pointer?.y ?? 0],
+            {
+              stroke: 'blue'
+            }
+          );
+          this.canvas?.remove(this.last);
+          this.last = line;
+          this.canvas?.add(line);
+        }
+      }
+    },
+    endSelect(e: fabric.IEvent) {
+      if (this.status == 1) {
+        this.canvas?.remove(this.last);
+        const line = new fabric.Line(
+          [this.startX, this.startY, e.pointer?.x ?? 0, e.pointer?.y ?? 0],
+          {
+            stroke: 'blue'
+          }
+        );
+        this.canvas?.add(line);
+        this.selectionMode = false;
+        if (this.canvas !== undefined) {
+          this.canvas.isDrawingMode = false;
+        }
+      }
+    },
+  }
 });
+
+function adjustTextWidth(evt: fabric.IEvent) {
+  if (evt.target instanceof fabric.IText) {
+    const text = evt.target.text || ""
+    while (evt.target.textLines.length > text.split("\n").length) {
+      evt.target.set({
+        width: evt.target.getScaledWidth() + 1
+      })
+    }
+  }
+}
 </script>
+
+<style>
+.aa {
+  background: blue;
+}
+</style>
