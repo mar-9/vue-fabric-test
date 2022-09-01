@@ -1,8 +1,5 @@
-<!--
-    Copyright(c) 2021 TECHaas.com, all rights reserved. 
--->
 <template>
-<div />
+  <div />
 </template>
 
 <script lang="ts">
@@ -18,7 +15,7 @@ export default Vue.extend({
   name: "FabricRect",
   props: {
     rectRec: Object as PropType<rectRecord>,
-    fillColor: String, 
+    fillColor: String,
     canvas: Object as PropType<fabric.Canvas>,
   },
   data(): DataType {
@@ -34,7 +31,7 @@ export default Vue.extend({
   },
   methods: {
     /* eslint-disable @typescript-eslint/no-non-null-assertion */
-    setupRect: function() {
+    setupRect: function () {
       const rect = new fabric.Rect({
         left: this.rectRec.x,
         top: this.rectRec.y,

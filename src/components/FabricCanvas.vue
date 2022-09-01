@@ -1,6 +1,3 @@
-<!--
-    Copyright(c) 2021 TECHaas.com, all rights reserved. 
--->
 <template>
   <div>
     <v-row>
@@ -26,7 +23,8 @@
     <v-row>
       <v-col>
         <v-btn :class="[status == 0 ? 'primary' : 'normal']" v-on:click="changeState(0)">
-          選択
+
+          <font-awesome-icon icon="fa-arrow-pointer" />
         </v-btn>
         <v-btn :class="[status == 1 ? 'primary' : 'normal']" v-on:click="changeState(1)">
           線
@@ -67,6 +65,7 @@ import { fabric } from "fabric";
 import FabricRect from '@/components/FabricRect.vue';
 import { rectRecord } from '@/App.vue';
 
+
 interface DataType {
   toggle_exclusive: any;
   canvas: fabric.Canvas | undefined;
@@ -82,7 +81,7 @@ interface DataType {
 export default Vue.extend({
   name: "FabricCanvas",
   components: {
-    FabricRect
+    FabricRect,
   },
   props: {
     width: Number,
